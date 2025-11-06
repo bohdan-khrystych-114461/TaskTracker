@@ -17,8 +17,9 @@ START-TASK-TRACKER.ps1
 
 **Option 2: Run from PowerShell**
 ```powershell
-cd c:\neldevsrc\personal
-.\START-TASK-TRACKER.ps1
+# Navigate to your project directory
+.
+\START-TASK-TRACKER.ps1
 ```
 
 The script will:
@@ -96,7 +97,6 @@ docker-compose up -d --build api
 ## 📁 Project Structure
 
 ```
-c:\neldevsrc\personal\
 ├── START-TASK-TRACKER.ps1      # Quick start script
 ├── STOP-TASK-TRACKER.ps1       # Stop script
 ├── docker-compose.yml           # Docker configuration
