@@ -1,4 +1,4 @@
-﻿# Task Tracker - Quick Start Script
+# Task Tracker - Quick Start Script
 # Run this script to start the entire application
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -8,14 +8,47 @@ Write-Host ""
 
 # Check if Docker is running
 Write-Host "[1/3] Checking Docker..." -ForegroundColor Yellow
-$dockerRunning = docker ps 2>$null
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Docker is not running!" -ForegroundColor Red
-    Write-Host "Please start Docker Desktop and try again." -ForegroundColor Yellow
-    pause
+$dockerRunning = $false
+$maxAttempts = 10
+$attempt = 0
+
+while ($attempt -lt $maxAttempts -and -not $dockerRunning) {
+    $attempt++
+    Write-Host "Checking Docker status (attempt $attempt of $maxAttempts)..." -ForegroundColor Yellow
+    
+    try {
+        $dockerTest = docker ps 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            $dockerRunning = $true
+            Write-Host "✓ Docker is running" -ForegroundColor Green
+        } else {
+            if ($attempt -eq 1) {
+                Write-Host "ERROR: Docker is not running!" -ForegroundColor Red
+                Write-Host "Please start Docker Desktop and press Enter to check again..." -ForegroundColor Yellow
+                Write-Host "Or press Ctrl+C to exit" -ForegroundColor Gray
+            } else {
+                Write-Host "Docker is still not running. Please start Docker Desktop and press Enter to try again..." -ForegroundColor Yellow
+            }
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        }
+    } catch {
+        if ($attempt -eq 1) {
+            Write-Host "ERROR: Docker is not running!" -ForegroundColor Red
+            Write-Host "Please start Docker Desktop and press Enter to check again..." -ForegroundColor Yellow
+            Write-Host "Or press Ctrl+C to exit" -ForegroundColor Gray
+        } else {
+            Write-Host "Docker is still not running. Please start Docker Desktop and press Enter to try again..." -ForegroundColor Yellow
+        }
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}
+
+if (-not $dockerRunning) {
+    Write-Host "ERROR: Could not start Docker after $maxAttempts attempts. Please check your Docker installation." -ForegroundColor Red
+    Write-Host "Press any key to exit..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
-Write-Host "✓ Docker is running" -ForegroundColor Green
 Write-Host ""
 
 # Start Docker containers (database + API)

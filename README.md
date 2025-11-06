@@ -10,20 +10,24 @@ A modern time tracking and task management application built with Angular and .N
 
 ### Starting the Application
 
-**Option 1: Double-click the startup script**
+**Option 1: Double-click the desktop shortcut**
+```
+Task Tracker (on your desktop)
+```
+
+**Option 2: Double-click the startup script**
 ```
 START-TASK-TRACKER.ps1
 ```
 
-**Option 2: Run from PowerShell**
+**Option 3: Run from PowerShell**
 ```powershell
 # Navigate to your project directory
-.
-\START-TASK-TRACKER.ps1
+.\START-TASK-TRACKER.ps1
 ```
 
 The script will:
-1. ✅ Check if Docker is running
+1. ✅ Check if Docker is running (will wait for you to start it if needed)
 2. ✅ Start the database and API (Docker)
 3. ✅ Start the Angular frontend
 4. ✅ Open your browser to http://localhost:4200
@@ -39,6 +43,17 @@ STOP-TASK-TRACKER.ps1
 ```powershell
 .\STOP-TASK-TRACKER.ps1
 ```
+
+## 🖥️ Creating Desktop Shortcut
+
+To create a desktop shortcut for easy access:
+
+```powershell
+# Run this once to create the shortcut
+.\Create-Desktop-Shortcut.ps1
+```
+
+This will create a "Task Tracker" icon on your desktop that you can double-click to start the application.
 
 ## 📦 What's Running
 
