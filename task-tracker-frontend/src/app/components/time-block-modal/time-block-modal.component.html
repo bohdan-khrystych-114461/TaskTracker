@@ -1,0 +1,54 @@
+<div class="modal-backdrop" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-content" *ngIf="block">
+    <div class="modal-header">
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <input 
+          type="text" 
+          [(ngModel)]="editedTaskName" 
+          placeholder="Task name"
+          class="task-name-input"
+          autofocus
+        />
+      </div>
+
+      <div class="time-inputs">
+        <div class="time-group">
+          <label>Start</label>
+          <input 
+            type="time" 
+            [(ngModel)]="editedStartTime"
+            class="time-input"
+          />
+        </div>
+
+        <span class="arrow">→</span>
+
+        <div class="time-group">
+          <label>End</label>
+          <input 
+            type="time" 
+            [(ngModel)]="editedEndTime"
+            class="time-input"
+            [disabled]="isActiveTimer"
+            [title]="isActiveTimer ? 'End time cannot be edited while timer is running' : ''"
+          />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-delete" (click)="onDelete()" *ngIf="!isNewBlock">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Delete
+        </button>
+        <button class="btn-save" (click)="onSave()">{{ isNewBlock ? 'Create' : 'Save' }}</button>
+      </div>
+    </div>
+  </div>
+</div>

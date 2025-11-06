@@ -1,0 +1,140 @@
+<div class="calendar-container" (mouseup)="onMouseUp($event)">
+  <div class="calendar-header">
+    <div class="date-picker-container">
+      <button class="date-picker-trigger" (click)="toggleDatePicker()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        {{ getCurrentDateLabel() }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="date-picker-dropdown" *ngIf="isDatePickerOpen" (click)="$event.stopPropagation()">
+        <div class="quick-nav">
+          <button class="quick-nav-item" (click)="selectQuickDate('today'); $event.stopPropagation()">Today</button>
+          <button class="quick-nav-item" (click)="selectQuickDate('yesterday'); $event.stopPropagation()">Yesterday</button>
+          <button class="quick-nav-item" (click)="selectQuickDate('thisWeek'); $event.stopPropagation()">This week</button>
+          <button class="quick-nav-item" (click)="selectQuickDate('lastWeek'); $event.stopPropagation()">Last week</button>
+        </div>
+
+        <div class="calendar-picker">
+          <div class="calendar-picker-header">
+            <button class="month-nav-btn" (click)="previousMonth()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <span class="month-year">{{ getMonthYearLabel() }}</span>
+            <button class="month-nav-btn" (click)="nextMonth()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="calendar-grid-picker">
+            <div class="weekday-header" *ngFor="let day of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']">
+              {{ day }}
+            </div>
+            <button
+              *ngFor="let day of calendarDays"
+              class="calendar-day"
+              [class.other-month]="!day.isCurrentMonth"
+              [class.today]="day.isToday"
+              [class.selected]="day.isSelected"
+              (click)="selectDate(day.date)"
+            >
+              {{ day.dayNumber }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-dropdown">
+      <button class="dropdown-trigger" (click)="toggleDropdown()">
+        {{ getViewModeLabel() }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="dropdown-menu" *ngIf="isDropdownOpen">
+        <button class="dropdown-item" [class.active]="viewMode === 'week'" (click)="setViewMode('week')">
+          Week view
+        </button>
+        <button class="dropdown-item" [class.active]="viewMode === '5days'" (click)="setViewMode('5days')">
+          5 days view
+        </button>
+        <button class="dropdown-item" [class.active]="viewMode === 'day'" (click)="setViewMode('day')">
+          Day view
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendar-grid">
+    <div class="calendar-headers">
+      <div class="time-header"></div>
+      <div class="day-headers-row" #dayHeadersRow>
+        <div class="day-header" *ngFor="let day of displayDays" [class.today]="isToday(day.date)">
+          <div class="day-name">{{ day.dayName }}</div>
+          <div class="day-number">{{ day.dayNumber }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-body">
+      <div class="time-column" #timeColumn>
+        <div class="time-slot" *ngFor="let slot of timeSlots">
+          {{ slot.displayTime }}
+        </div>
+      </div>
+
+      <div class="days-container" #daysContainer>
+        <div class="day-column" *ngFor="let day of displayDays; let dayIndex = index">
+          <div class="day-slots">
+          <ng-container *ngFor="let slot of timeSlots">
+            <div
+              class="quarter-hour-slot"
+              *ngFor="let quarter of [0, 15, 30, 45]"
+              [class.dragging]="isSlotInDragRange(dayIndex, slot.hour, quarter)"
+              (mousedown)="onMouseDown(dayIndex, slot.hour, quarter, $event)"
+              (mousemove)="onMouseMove(dayIndex, slot.hour, quarter, $event)"
+              (click)="onSlotClick(dayIndex, slot.hour, quarter, $event)"
+            >
+            </div>
+          </ng-container>
+
+          <div class="time-blocks">
+            <div
+              class="time-block"
+              [class.active-timer]="isBlockActive(block)"
+              *ngFor="let block of day.blocks"
+              [style.top]="getBlockStyle(block).top"
+              [style.height]="getBlockStyle(block).height"
+              [title]="block.taskName"
+              (click)="openBlockModal(block, $event)"
+            >
+              <div class="block-title">{{ block.taskName }}</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time Block Modal -->
+  <app-time-block-modal
+    [block]="selectedBlock"
+    [isVisible]="isModalVisible"
+    (close)="closeModal()"
+    (save)="saveBlock($event)"
+    (delete)="deleteBlock()"
+  ></app-time-block-modal>
+</div>

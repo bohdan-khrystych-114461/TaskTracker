@@ -1,0 +1,66 @@
+<div class="todo-list-container">
+  <div class="todo-header">
+    <h3>To-Do List</h3>
+    <button class="add-btn" (click)="addTodo()">+</button>
+  </div>
+
+  <div class="todo-input-section">
+    <input 
+      type="text" 
+      [(ngModel)]="newTodoTitle" 
+      placeholder="Add a new task..."
+      class="todo-input"
+      (keyup.enter)="addTodo()"
+    />
+  </div>
+
+  <div class="todo-items">
+    <div class="todo-section" *ngIf="activeTodos.length > 0">
+      <h4>Active</h4>
+      <div 
+        class="todo-item" 
+        *ngFor="let todo of activeTodos"
+      >
+        <input 
+          type="checkbox" 
+          [checked]="todo.isCompleted"
+          (change)="toggleTodo(todo.id)"
+          class="todo-checkbox"
+        />
+        <span class="todo-title">{{ todo.title }}</span>
+        <button class="delete-btn" (click)="deleteTodo(todo.id)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="todo-section" *ngIf="completedTodos.length > 0">
+      <h4>Completed</h4>
+      <div 
+        class="todo-item completed" 
+        *ngFor="let todo of completedTodos"
+      >
+        <input 
+          type="checkbox" 
+          [checked]="todo.isCompleted"
+          (change)="toggleTodo(todo.id)"
+          class="todo-checkbox"
+        />
+        <span class="todo-title">{{ todo.title }}</span>
+        <button class="delete-btn" (click)="deleteTodo(todo.id)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="todoItems.length === 0">
+      <p>No tasks yet. Add one to get started!</p>
+    </div>
+  </div>
+</div>
