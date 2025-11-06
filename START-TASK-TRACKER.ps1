@@ -1,4 +1,4 @@
-# Task Tracker - Quick Start Script
+﻿# Task Tracker - Quick Start Script
 # Run this script to start the entire application
 
 Write-Host "========================================" -ForegroundColor Cyan
