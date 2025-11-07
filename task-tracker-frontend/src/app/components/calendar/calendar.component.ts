@@ -35,7 +35,6 @@ interface CalendarDay {
 export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('timeColumn') timeColumn!: ElementRef<HTMLDivElement>;
   @ViewChild('daysContainer') daysContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('dayHeadersRow') dayHeadersRow!: ElementRef<HTMLDivElement>;
 
   weekDays: DayColumn[] = [];
   timeSlots: TimeSlot[] = [];
@@ -75,24 +74,20 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     // Synchronize scroll between time column and days container
     setTimeout(() => {
-      if (this.daysContainer && this.timeColumn && this.dayHeadersRow) {
+      if (this.daysContainer && this.timeColumn) {
         const daysEl = this.daysContainer.nativeElement;
         const timeEl = this.timeColumn.nativeElement;
-        const headersEl = this.dayHeadersRow.nativeElement;
 
         console.log('Setting up scroll sync');
 
         // Sync vertical scroll (time column with days)
         daysEl.addEventListener('scroll', () => {
           timeEl.scrollTop = daysEl.scrollTop;
-          // Sync horizontal scroll (headers with days)
-          headersEl.scrollLeft = daysEl.scrollLeft;
         });
       } else {
         console.error('Scroll sync failed - elements not found:', {
           daysContainer: !!this.daysContainer,
-          timeColumn: !!this.timeColumn,
-          dayHeadersRow: !!this.dayHeadersRow
+          timeColumn: !!this.timeColumn
         });
       }
     }, 100);
@@ -321,12 +316,12 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
         // Check if this is the active timer block and update timer if needed
         const activeTimerBlockId = this.timeTrackerService.getActiveTimerBlockId();
         const isActiveTimer = activeTimerBlockId === this.selectedBlock.id;
-        
+
         if (isActiveTimer && updates.startTime) {
           // Update the timer state when start time is changed
           this.timeTrackerService.updateTimerStartTime(updates.startTime, updates.taskName);
         }
-        
+
         // Update existing block
         this.timeTrackerService.updateTimeBlock(this.selectedBlock.id, updates);
       }
@@ -378,6 +373,19 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
   setViewMode(mode: 'day' | 'week' | '5days'): void {
     this.viewMode = mode;
     this.isDropdownOpen = false;
+
+    // When switching to week or 5days view, ensure currentWeekStart is a Monday
+    if (mode === 'week' || mode === '5days') {
+      const date = new Date(this.currentWeekStart);
+      const dayOfWeek = date.getDay();
+      // Calculate Monday: if Sunday (0), go back 6 days, otherwise go back (dayOfWeek - 1) days
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      date.setDate(date.getDate() - daysToMonday);
+      date.setHours(0, 0, 0, 0);
+      this.currentWeekStart = date;
+      this.initializeWeek();
+      this.generateCalendarDays();
+    }
   }
 
   toggleDropdown(): void {
@@ -395,8 +403,13 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get displayDays(): DayColumn[] {
     if (this.viewMode === 'day') {
-      const today = this.weekDays.find(day => this.isToday(day.date));
-      return today ? [today] : [this.weekDays[0]];
+      // Find the day that matches currentWeekStart
+      const selectedDay = this.weekDays.find(day =>
+        day.date.getDate() === this.currentWeekStart.getDate() &&
+        day.date.getMonth() === this.currentWeekStart.getMonth() &&
+        day.date.getFullYear() === this.currentWeekStart.getFullYear()
+      );
+      return selectedDay ? [selectedDay] : [this.weekDays[0]];
     }
     if (this.viewMode === '5days') {
       return this.weekDays.slice(0, 5); // Monday to Friday
@@ -459,26 +472,50 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    let selectedDate: Date;
+    let switchToViewMode: 'day' | 'week' | '5days' | null = null;
+
     switch(option) {
       case 'today':
-        this.currentWeekStart = new Date(today);
+        selectedDate = new Date(today);
+        switchToViewMode = 'day';
         break;
       case 'yesterday':
-        this.currentWeekStart = new Date(today);
-        this.currentWeekStart.setDate(today.getDate() - 1);
+        selectedDate = new Date(today);
+        selectedDate.setDate(today.getDate() - 1);
+        switchToViewMode = 'day';
         break;
       case 'thisWeek':
         const currentDay = today.getDay();
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
-        this.currentWeekStart = monday;
+        selectedDate = new Date(today);
+        selectedDate.setDate(today.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
+        switchToViewMode = 'week';
         break;
       case 'lastWeek':
         const lastWeekDay = today.getDay();
-        const lastMonday = new Date(today);
-        lastMonday.setDate(today.getDate() - lastWeekDay + (lastWeekDay === 0 ? -6 : 1) - 7);
-        this.currentWeekStart = lastMonday;
+        selectedDate = new Date(today);
+        selectedDate.setDate(today.getDate() - lastWeekDay + (lastWeekDay === 0 ? -6 : 1) - 7);
+        switchToViewMode = 'week';
         break;
+      default:
+        selectedDate = new Date(today);
+    }
+
+    // Switch view mode if specified
+    if (switchToViewMode) {
+      this.viewMode = switchToViewMode;
+    }
+
+    // For day view, set the exact date
+    // For week/5days view, set to the Monday of that week
+    if (this.viewMode === 'day') {
+      this.currentWeekStart = selectedDate;
+    } else {
+      // Calculate Monday of the selected date's week
+      const dayOfWeek = selectedDate.getDay();
+      const monday = new Date(selectedDate);
+      monday.setDate(selectedDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+      this.currentWeekStart = monday;
     }
 
     console.log('New week start:', this.currentWeekStart);
@@ -489,15 +526,22 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
   selectDate(date: Date): void {
     console.log('Date selected from calendar:', date);
 
-    // Calculate the Monday of the selected date's week
     const selectedDate = new Date(date);
-    const dayOfWeek = selectedDate.getDay();
-    const monday = new Date(selectedDate);
-    monday.setDate(selectedDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
-    monday.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
 
-    console.log('Setting week start to Monday:', monday);
-    this.currentWeekStart = monday;
+    // In day view, select the exact date
+    // In week/5days view, select the whole week (set to Monday)
+    if (this.viewMode === 'day') {
+      this.currentWeekStart = selectedDate;
+    } else {
+      // Calculate the Monday of the selected date's week
+      const dayOfWeek = selectedDate.getDay();
+      const monday = new Date(selectedDate);
+      monday.setDate(selectedDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+      this.currentWeekStart = monday;
+    }
+
+    console.log('Setting week start to:', this.currentWeekStart);
     this.initializeWeek();
     this.isDatePickerOpen = false;
   }
@@ -522,6 +566,16 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
     const selected = new Date(this.currentWeekStart);
     selected.setHours(0, 0, 0, 0);
 
+    // Calculate the selected week range (for week/5days view)
+    const selectedWeekStart = new Date(selected);
+    const selectedWeekEnd = new Date(selected);
+    if (this.viewMode !== 'day') {
+      // For week view, highlight Monday to Sunday
+      const dayOfWeek = selected.getDay();
+      selectedWeekStart.setDate(selected.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      selectedWeekEnd.setDate(selectedWeekStart.getDate() + 6);
+    }
+
     // Previous month days
     for (let i = prevMonthDays; i > 0; i--) {
       const date = new Date(year, month - 1, prevMonthLastDay - i + 1);
@@ -530,7 +584,9 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
         dayNumber: date.getDate(),
         isCurrentMonth: false,
         isToday: this.isSameDay(date, today),
-        isSelected: this.isSameDay(date, selected)
+        isSelected: this.viewMode === 'day'
+          ? this.isSameDay(date, selected)
+          : this.isDateInRange(date, selectedWeekStart, selectedWeekEnd)
       });
     }
 
@@ -542,7 +598,9 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
         dayNumber: i,
         isCurrentMonth: true,
         isToday: this.isSameDay(date, today),
-        isSelected: this.isSameDay(date, selected)
+        isSelected: this.viewMode === 'day'
+          ? this.isSameDay(date, selected)
+          : this.isDateInRange(date, selectedWeekStart, selectedWeekEnd)
       });
     }
 
@@ -555,9 +613,22 @@ export class CalendarComponent implements OnInit, OnDestroy, AfterViewInit {
         dayNumber: i,
         isCurrentMonth: false,
         isToday: this.isSameDay(date, today),
-        isSelected: this.isSameDay(date, selected)
+        isSelected: this.viewMode === 'day'
+          ? this.isSameDay(date, selected)
+          : this.isDateInRange(date, selectedWeekStart, selectedWeekEnd)
       });
     }
+  }
+
+  isDateInRange(date: Date, start: Date, end: Date): boolean {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(start);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(end);
+    endDate.setHours(0, 0, 0, 0);
+
+    return checkDate >= startDate && checkDate <= endDate;
   }
 
   isBlockActive(block: TimeBlock): boolean {

@@ -1,13 +1,77 @@
 <div class="todo-list-container">
+  <!-- Daily Goal Section -->
+  <div class="daily-goal-section">
+    <div class="daily-goal-header">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="goal-icon">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 6v6l4 2"></path>
+      </svg>
+      <h4>Today's Microgoal</h4>
+    </div>
+
+    <div class="daily-goal-content" *ngIf="!isEditingGoal && savedDailyGoal">
+      <div class="daily-goal-item" [class.completed]="isDailyGoalCompleted">
+        <input
+          type="checkbox"
+          [checked]="isDailyGoalCompleted"
+          (change)="toggleDailyGoal()"
+          class="goal-checkbox"
+        />
+        <span class="goal-text">{{ savedDailyGoal }}</span>
+        <div class="goal-actions">
+          <button class="edit-goal-btn" (click)="editDailyGoal()" title="Edit goal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="clear-goal-btn" (click)="clearDailyGoal()" title="Clear goal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="daily-goal-input" *ngIf="isEditingGoal || !savedDailyGoal">
+      <input
+        type="text"
+        [(ngModel)]="dailyGoal"
+        placeholder="What's your main focus for today?"
+        class="goal-input"
+        (keyup.enter)="saveDailyGoalEdit()"
+        (keyup.escape)="cancelDailyGoalEdit()"
+        autofocus
+      />
+      <button
+        class="save-goal-btn"
+        (click)="saveDailyGoalEdit()"
+        [disabled]="dailyGoal.trim().length < 3"
+        [title]="dailyGoal.trim().length < 3 ? 'Enter at least 3 characters' : 'Save goal'"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <div class="todo-header">
     <h3>To-Do List</h3>
-    <button class="add-btn" (click)="addTodo()">+</button>
+    <button class="add-btn" (click)="addTodo()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
   </div>
 
   <div class="todo-input-section">
-    <input 
-      type="text" 
-      [(ngModel)]="newTodoTitle" 
+    <input
+      type="text"
+      [(ngModel)]="newTodoTitle"
       placeholder="Add a new task..."
       class="todo-input"
       (keyup.enter)="addTodo()"
@@ -17,12 +81,12 @@
   <div class="todo-items">
     <div class="todo-section" *ngIf="activeTodos.length > 0">
       <h4>Active</h4>
-      <div 
-        class="todo-item" 
+      <div
+        class="todo-item"
         *ngFor="let todo of activeTodos"
       >
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           [checked]="todo.isCompleted"
           (change)="toggleTodo(todo.id)"
           class="todo-checkbox"
@@ -39,12 +103,12 @@
 
     <div class="todo-section" *ngIf="completedTodos.length > 0">
       <h4>Completed</h4>
-      <div 
-        class="todo-item completed" 
+      <div
+        class="todo-item completed"
         *ngFor="let todo of completedTodos"
       >
-        <input 
-          type="checkbox" 
+        <input
+          type="checkbox"
           [checked]="todo.isCompleted"
           (change)="toggleTodo(todo.id)"
           class="todo-checkbox"

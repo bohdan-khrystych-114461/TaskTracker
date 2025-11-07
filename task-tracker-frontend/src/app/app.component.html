@@ -8,7 +8,14 @@
       <app-calendar></app-calendar>
     </main>
 
-    <aside class="sidebar">
+    <div
+      class="resizer"
+      (mousedown)="onMouseDown($event)"
+      [class.dragging]="isDragging"
+      title="Drag to resize"
+    ></div>
+
+    <aside class="sidebar" [style.width.px]="sidebarWidth">
       <app-todo-list></app-todo-list>
     </aside>
   </div>

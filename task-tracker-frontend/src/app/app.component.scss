@@ -17,19 +17,60 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
+  min-width: 0; // Allow shrinking
+}
+
+.resizer {
+  width: 6px;
+  background-color: #3a3a3a;
+  cursor: col-resize;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+  user-select: none;
+
+  &:hover {
+    background-color: #e040fb;
+  }
+
+  &.dragging {
+    background-color: #e040fb;
+  }
+
+  // Visual indicator - three dots
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 30px;
+    background: repeating-linear-gradient(
+      to bottom,
+      #888 0px,
+      #888 3px,
+      transparent 3px,
+      transparent 6px
+    );
+  }
 }
 
 .sidebar {
-  width: 320px;
+  // Width controlled by inline style from component
+  min-width: 250px;
+  max-width: 600px;
   background-color: #252525;
   border-left: 1px solid #3a3a3a;
   overflow-y: auto;
+  flex-shrink: 0;
 }
 
 @media (max-width: 1024px) {

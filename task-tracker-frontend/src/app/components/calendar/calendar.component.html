@@ -78,51 +78,51 @@
   </div>
 
   <div class="calendar-grid">
-    <div class="calendar-headers">
+    <div class="time-column-wrapper">
       <div class="time-header"></div>
-      <div class="day-headers-row" #dayHeadersRow>
-        <div class="day-header" *ngFor="let day of displayDays" [class.today]="isToday(day.date)">
-          <div class="day-name">{{ day.dayName }}</div>
-          <div class="day-number">{{ day.dayNumber }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="calendar-body">
       <div class="time-column" #timeColumn>
         <div class="time-slot" *ngFor="let slot of timeSlots">
           {{ slot.displayTime }}
         </div>
       </div>
+    </div>
 
-      <div class="days-container" #daysContainer>
-        <div class="day-column" *ngFor="let day of displayDays; let dayIndex = index">
-          <div class="day-slots">
-          <ng-container *ngFor="let slot of timeSlots">
-            <div
-              class="quarter-hour-slot"
-              *ngFor="let quarter of [0, 15, 30, 45]"
-              [class.dragging]="isSlotInDragRange(dayIndex, slot.hour, quarter)"
-              (mousedown)="onMouseDown(dayIndex, slot.hour, quarter, $event)"
-              (mousemove)="onMouseMove(dayIndex, slot.hour, quarter, $event)"
-              (click)="onSlotClick(dayIndex, slot.hour, quarter, $event)"
-            >
-            </div>
-          </ng-container>
-
-          <div class="time-blocks">
-            <div
-              class="time-block"
-              [class.active-timer]="isBlockActive(block)"
-              *ngFor="let block of day.blocks"
-              [style.top]="getBlockStyle(block).top"
-              [style.height]="getBlockStyle(block).height"
-              [title]="block.taskName"
-              (click)="openBlockModal(block, $event)"
-            >
-              <div class="block-title">{{ block.taskName }}</div>
-            </div>
+    <div class="days-scroll-container" #daysContainer>
+      <div class="days-wrapper">
+        <div class="day-column-wrapper" *ngFor="let day of displayDays; let dayIndex = index">
+          <div class="day-header" [class.today]="isToday(day.date)">
+            <div class="day-name">{{ day.dayName }}</div>
+            <div class="day-number">{{ day.dayNumber }}</div>
           </div>
+
+          <div class="day-column">
+            <div class="day-slots">
+              <ng-container *ngFor="let slot of timeSlots">
+                <div
+                  class="quarter-hour-slot"
+                  *ngFor="let quarter of [0, 15, 30, 45]"
+                  [class.dragging]="isSlotInDragRange(dayIndex, slot.hour, quarter)"
+                  (mousedown)="onMouseDown(dayIndex, slot.hour, quarter, $event)"
+                  (mousemove)="onMouseMove(dayIndex, slot.hour, quarter, $event)"
+                  (click)="onSlotClick(dayIndex, slot.hour, quarter, $event)"
+                >
+                </div>
+              </ng-container>
+
+              <div class="time-blocks">
+                <div
+                  class="time-block"
+                  [class.active-timer]="isBlockActive(block)"
+                  *ngFor="let block of day.blocks"
+                  [style.top]="getBlockStyle(block).top"
+                  [style.height]="getBlockStyle(block).height"
+                  [title]="block.taskName"
+              (click)="openBlockModal(block, $event)"
+                >
+                  <div class="block-title">{{ block.taskName }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
